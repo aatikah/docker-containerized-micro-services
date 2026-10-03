@@ -1,0 +1,24 @@
+services:
+  gateway:
+    image: ${REGISTRY_NAMESPACE:-your-dockerhub-username}/microservices-gateway:${GATEWAY_IMAGE_TAG:-v1.0.0}
+    pull_policy: always
+    environment:
+      NODE_ENV: production
+
+  product-service:
+    image: ${REGISTRY_NAMESPACE:-your-dockerhub-username}/product-service:${PRODUCT_IMAGE_TAG:-v1.0.0}
+    pull_policy: always
+    environment:
+      NODE_ENV: production
+
+  order-service:
+    image: ${REGISTRY_NAMESPACE:-your-dockerhub-username}/order-service:${ORDER_IMAGE_TAG:-v1.0.0}
+    pull_policy: always
+    environment:
+      NODE_ENV: production
+
+  postgres:
+    image: postgres:16.3-alpine
+
+  redis:
+    image: redis:7.2.5-alpine

@@ -1,0 +1,151 @@
+version: "3.9"
+
+services:
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    image: microservices-gateway:local
+    container_name: gateway
+    environment:
+      PORT: "${GATEWAY_PORT:-3000}"
+      PRODUCT_SERVICE_URL: ${PRODUCT_SERVICE_URL:-http://product-service:3001}
+      ORDER_SERVICE_URL: ${ORDER_SERVICE_URL:-http://order-service:3002}
+      NODE_ENV: production
+    ports:
+      - "8080:3000"
+    depends_on:
+      product-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"const http=require('http'); const req=http.get('http://127.0.0.1:3000/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1));\""
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    cpus: 0.5
+    mem_limit: 256m
+
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    image: microservices-product-service:local
+    container_name: product-service
+    environment:
+      PORT: "${PRODUCT_SERVICE_PORT:-3001}"
+      DB_HOST: ${POSTGRES_HOST:-postgres}
+      DB_PORT: "${POSTGRES_PORT:-5432}"
+      DB_NAME: ${POSTGRES_DB:-appdb}
+      DB_USER: ${POSTGRES_USER:-appuser}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"const http=require('http'); const req=http.get('http://127.0.0.1:3001/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1));\""
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    cpus: 0.5
+    mem_limit: 256m
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    image: microservices-order-service:local
+    container_name: order-service
+    environment:
+      PORT: "${ORDER_SERVICE_PORT:-3002}"
+      DB_HOST: ${POSTGRES_HOST:-postgres}
+      DB_PORT: "${POSTGRES_PORT:-5432}"
+      DB_NAME: ${POSTGRES_DB:-appdb}
+      DB_USER: ${POSTGRES_USER:-appuser}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      PRODUCT_SERVICE_URL: ${PRODUCT_SERVICE_URL:-http://product-service:3001}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"const http=require('http'); const req=http.get('http://127.0.0.1:3002/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1));\""
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    cpus: 0.5
+    mem_limit: 256m
+
+  postgres:
+    image: postgres:16.3-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-appdb}
+      POSTGRES_USER: ${POSTGRES_USER:-appuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    cpus: 0.5
+    mem_limit: 512m
+
+  redis:
+    image: redis:7.2.5-alpine
+    container_name: redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    cpus: 0.25
+    mem_limit: 256m
+
+networks:
+  microservices-network:
+    driver: bridge
+    name: microservices-network
+
+volumes:
+  postgres-data:
+  redis-data:

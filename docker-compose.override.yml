@@ -1,0 +1,42 @@
+services:
+  gateway:
+    user: root
+    command: sh -c "chown -R appuser:appgroup /app && npm install --no-fund --no-audit && npm run dev"
+    environment:
+      NODE_ENV: development
+      DEBUG: "true"
+    volumes:
+      - ./gateway/src:/app/src
+      - ./gateway/package.json:/app/package.json
+      - gateway_node_modules:/app/node_modules
+    ports:
+      - "9229:9229"
+
+  product-service:
+    user: root
+    command: sh -c "chown -R appuser:appgroup /app && npm install --no-fund --no-audit && npm run dev"
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./product-service/src:/app/src
+      - ./product-service/package.json:/app/package.json
+      - product_node_modules:/app/node_modules
+    ports:
+      - "9230:9229"
+
+  order-service:
+    user: root
+    command: sh -c "chown -R appuser:appgroup /app && npm install --no-fund --no-audit && npm run dev"
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./order-service/src:/app/src
+      - ./order-service/package.json:/app/package.json
+      - order_node_modules:/app/node_modules
+    ports:
+      - "9231:9229"
+
+volumes:
+  gateway_node_modules:
+  product_node_modules:
+  order_node_modules:
