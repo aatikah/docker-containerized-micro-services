@@ -101,7 +101,7 @@ docker compose build
 ```bash
 docker compose up -d
 ```
-![](https://github.com/aatikah/docker-containerized-micro-services/blob/main/containers.png)
+![](https://github.com/aatikah/docker-containerized-micro-services/blob/main/images/containers.png)
 
 4. Check service status:
 
@@ -128,7 +128,7 @@ curl http://localhost:8080/api/orders \
   -H 'Content-Type: application/json' \
   -d '{"productId":1,"quantity":2}'
 ```
-![](https://github.com/aatikah/docker-containerized-micro-services/blob/main/app-test.png)
+![](https://github.com/aatikah/docker-containerized-micro-services/blob/main/images/app-test.png)
 
 ## Development mode
 
@@ -191,7 +191,7 @@ Gateway	< 50MB	Pass
 Product Service	< 50MB	Pass
 Order Service	< 50	Pass
 
-![](https://github.com/aatikah/docker-containerized-micro-services/blob/main/img-size.png)
+![](https://github.com/aatikah/docker-containerized-micro-services/blob/main/images/img-size.png)
 
 The images are kept small by using Alpine-based Node images, copying only runtime files, installing only production dependencies, and excluding unnecessary files with `.dockerignore`.
 
@@ -248,7 +248,7 @@ docker push your-dockerhub-user/microservices-gateway:v1.0.0
 docker push your-dockerhub-user/product-service:v1.0.0
 docker push your-dockerhub-user/order-service:v1.0.0
 ```
-![](https://github.com/aatikah/docker-containerized-micro-services/blob/main/docker-hub.png)
+![](https://github.com/aatikah/docker-containerized-micro-services/blob/main/images/docker-hub.png)
 
 These commands are intentionally left as placeholders and require valid Docker Hub credentials and authorization before they can be executed successfully.
 
